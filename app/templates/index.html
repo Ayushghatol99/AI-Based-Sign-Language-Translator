@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>VaniSetu — AI Based Sign Language Translator for Deaf and Speech-Impaired Individuals</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,700;12..96,800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="/static/css/style.css?v=40" />
+</head>
+<body>
+
+<header class="site-header">
+  <div class="header-inner">
+    <a class="brand" href="#top">
+      <span class="brand-mark" aria-hidden="true">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+          <path d="M7 11V5.5a1.5 1.5 0 0 1 3 0V10m0-4.5v-1a1.5 1.5 0 0 1 3 0V10m0-4.5a1.5 1.5 0 0 1 3 0V11m0-2.5a1.5 1.5 0 0 1 3 0V13c0 3.5-2.5 7-6.5 7S6 18.5 5 16.5l-1.6-2.9c-.5-.9.1-2 1.1-2.2.6-.1 1.2.1 1.5.6L7 14" stroke="#FFFAFA" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </span>
+      <span class="brand-text">VaniSetu <em>AI Sign Language Translator</em></span>
+    </a>
+    <nav class="header-nav">
+      <a class="nav-item active" href="#top">Console</a>
+      <a class="nav-item" href="#characters">Characters</a>
+      <a class="nav-item" href="#how">Pipeline</a>
+      <a class="nav-item" href="/metrics">Metrics</a>
+      <a class="nav-item" href="/chat">AI Chat</a>
+      <a class="nav-item" href="/guide">Guide</a>
+    </nav>
+    <div class="status-pill" id="healthPill">
+      <span class="dot"></span>
+      <span id="healthText">Connecting…</span>
+    </div>
+  </div>
+</header>
+
+<main class="page" id="top">
+  <!-- ══════════ HERO ══════════ -->
+  <section class="hero">
+    <div class="hero-main">
+      <p class="hero-badge">Live demo</p>
+      <h1>Hands speak.<br />We <span class="hl">translate.</span></h1>
+      <p class="hero-sub">VaniSetu turns hand signs into text, and typed words back into signs — built for deaf and speech-impaired individuals. Point your camera, capture a sign, and build sentences you can hear aloud. No setup, nothing stored.</p>
+      <div class="hero-cta">
+        <a class="btn btn-hero" href="#panel-recognize">Start recognition →</a>
+        <a class="btn btn-hero-ghost" href="#panel-preview">Text → sign</a>
+      </div>
+      <details class="sysinfo">
+        <summary>System info</summary>
+        <dl class="hero-stats">
+          <div class="hstat"><dt>Vocabulary</dt><dd id="metaVocab">—</dd></div>
+          <div class="hstat"><dt>Model</dt><dd id="metaModel">—</dd></div>
+          <div class="hstat"><dt>Input</dt><dd>63-D landmarks</dd></div>
+        </dl>
+        <p class="sys-tech">Pipeline: camera or photo → 63 MediaPipe hand landmarks → CNN&ndash;LSTM temporal embedding → RandomForest classifier → Flask API. Single stills are tiled across the model's time window, so static signs and motion signs share one path.</p>
+      </details>
+    </div>
+    <aside class="hero-side hero-media" aria-label="Sign language illustration">
+      <img src="/static/image_no_bg.png" alt="Hand demonstrating a sign language gesture" />
+    </aside>
+  </section>
+
+  <!-- ══════════ MARQUEE ══════════ -->
+  <div class="marquee" aria-hidden="true">
+    <div class="marquee-track">
+      <span>Sign to text</span><i>✦</i><span>Text to sign</span><i>✦</i><span>36 characters</span><i>✦</i><span>CNN–LSTM–RF</span><i>✦</i><span>Live webcam</span><i>✦</i>
+    </div>
+  </div>
+
+  <!-- ══════════ CONSOLE ══════════ -->
+  <div class="grid">
+    <section class="panel" id="panel-recognize">
+      <div class="panel-head">
+        <p class="eyebrow">01 · Recognition</p>
+        <h2>Sign to text</h2>
+        <p class="desc">Go live for hands-free real-time prediction, capture a single frame, or upload a photo instead.</p>
+      </div>
+      <div class="recog-grid">
+        <div class="recog-cam">
+          <div class="preview" id="previewBox">
+            <video id="cam" autoplay playsinline muted></video>
+            <div class="preview-empty" id="previewEmpty">
+              <svg width="30" height="30" viewBox="0 0 24 24" fill="none">
+                <path d="M4 8h3l2-3h6l2 3h3v11H4V8Z" stroke="#F94C00" stroke-width="1.6" stroke-linejoin="round"/>
+                <circle cx="12" cy="13" r="3.4" stroke="#F94C00" stroke-width="1.6"/>
+              </svg>
+              <p>Camera is off<span>Press “Start camera” to preview</span></p>
+            </div>
+            <canvas id="snap" hidden></canvas>
+            <p class="live-ind" id="liveInd" hidden><span class="live-pip" aria-hidden="true"></span>Live</p>
+          </div>
+          <div class="btn-row">
+            <button class="btn btn-secondary" id="btnStart" type="button">Start camera</button>
+            <button class="btn btn-primary" id="btnLive" type="button" aria-pressed="false">Go live</button>
+            <button class="btn btn-secondary" id="btnCapture" type="button">Capture &amp; predict</button>
+            <button class="btn btn-ghost" id="btnMirror" type="button" aria-pressed="false" title="Enable only if your preview looks mirrored/reversed compared to the training window. Flips preview and capture together.">Fix mirrored camera: Off</button>
+            <label class="btn btn-secondary file-btn">Upload photo
+              <input type="file" id="file" accept="image/*" hidden />
+            </label>
+          </div>
+        </div>
+        <div class="recog-side">
+          <div class="result" id="result" aria-live="polite">
+            <div class="result-main">
+              <span class="result-label" id="resultLabel">No prediction yet</span>
+              <span class="result-conf" id="resultConf"></span>
+            </div>
+            <div class="meter"><span id="meterFill"></span></div>
+            <p class="result-sub" id="resultSub">Predictions land here with a confidence score.</p>
+          </div>
+          <p class="eyebrow recog-out">Output · Sign to text</p>
+          <div class="sentence-row">
+            <div class="sentence" id="sentence" aria-live="polite"></div>
+            <button class="btn btn-ghost" id="btnClear" type="button">Clear</button>
+            <button class="btn btn-ghost" id="btnSpeak" type="button">Speak</button>
+            <button class="btn btn-ghost" id="btnSpace" type="button" title="Insert space">Space</button>
+            <button class="btn btn-primary" id="btnSendAlert" type="button" title="Send text alert via Email SMTP">✉ Send Alert</button>
+          </div>
+          <div class="sentence-tools">
+            <button class="btn btn-ghost btn-small" id="btnAuto" type="button" aria-pressed="true">Auto-speak: On</button>
+            <button class="btn btn-ghost btn-small" id="btnToggleSmtp" type="button">⚙ Email Settings</button>
+            <button class="btn btn-ghost btn-small" id="btnAutoAlert" type="button" aria-pressed="true">Auto-Send on "ALERT": Active</button>
+          </div>
+
+          <div class="alert-status-msg" id="alertStatusMsg" hidden></div>
+
+          <!-- ── SMTP Email Config Panel ── -->
+          <div class="smtp-config-card" id="smtpConfigCard" hidden>
+            <div class="smtp-card-head">
+              <p class="eyebrow" style="margin:0;">SMTP Configuration</p>
+              <button type="button" class="char-del" id="btnCloseSmtp" style="opacity:1; position:static;" title="Close">&times;</button>
+            </div>
+            <p class="desc" style="font-size:12px; margin: 4px 0 12px;">Define the recipient and SMTP server details to dispatch email alerts whenever hand signs are recognized.</p>
+            <form id="smtpForm">
+              <div class="smtp-grid">
+                <div class="smtp-field full-width">
+                  <label for="smtpRecipient">Defined Target Recipient Email(s) * (separated by commas for multiple receivers)</label>
+                  <input type="text" id="smtpRecipient" placeholder="receiver1@gmail.com, receiver2@gmail.com" required />
+                </div>
+                <div class="smtp-field">
+                  <label for="smtpSender">Sender Email *</label>
+                  <input type="email" id="smtpSender" placeholder="your-email@gmail.com" required />
+                </div>
+                <div class="smtp-field">
+                  <label for="smtpPassword">Sender Password / App Password</label>
+                  <input type="password" id="smtpPassword" placeholder="••••••••••••" />
+                </div>
+                <div class="smtp-field">
+                  <label for="smtpHost">SMTP Host</label>
+                  <input type="text" id="smtpHost" placeholder="smtp.gmail.com" value="smtp.gmail.com" />
+                </div>
+                <div class="smtp-field">
+                  <label for="smtpPort">SMTP Port</label>
+                  <input type="number" id="smtpPort" placeholder="587" value="587" />
+                </div>
+                <div class="smtp-field full-width checkbox-field">
+                  <label><input type="checkbox" id="smtpUseTls" checked /> Enable TLS / SSL Encryption</label>
+                </div>
+              </div>
+              <div class="smtp-actions">
+                <button class="btn btn-primary btn-small" type="submit" id="btnSaveSmtp">Save SMTP Settings</button>
+                <button class="btn btn-secondary btn-small" type="button" id="btnTestSmtp">Send Test Alert</button>
+              </div>
+              <p class="char-msg" id="smtpMsg" aria-live="polite"></p>
+            </form>
+          </div>
+
+          <div class="i18n" id="i18n" hidden>
+            <p title="Hindi translation"><span class="lang-tag">HI · Hindi</span><span id="trHi" lang="hi">…</span></p>
+            <p title="Marathi translation"><span class="lang-tag">MR · Marathi</span><span id="trMr" lang="mr">…</span></p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel" id="panel-preview">
+      <div class="panel-head">
+        <p class="eyebrow">02 · Preview</p>
+        <h2>Text to sign</h2>
+        <p class="desc">Type a word or short phrase and review the reference sign for every character.</p>
+      </div>
+      <form class="convert-row" id="convertForm">
+        <input id="txt" type="text" placeholder="e.g. HELLO WORLD" maxlength="120" autocomplete="off" />
+        <button class="btn btn-primary" id="btnConvert" type="submit">Convert</button>
+      </form>
+      <p class="sign-word" id="signWord" hidden></p>
+      <div class="player" id="player" hidden>
+        <div class="player-stage">
+          <img id="playerImg" alt="Current sign" />
+          <span class="player-char" id="playerChar" aria-hidden="true">A</span>
+        </div>
+        <div class="player-bar">
+          <button class="btn btn-ghost" id="playerPrev" type="button">‹ Prev</button>
+          <button class="btn btn-primary" id="playerPlay" type="button">▶ Play</button>
+          <button class="btn btn-ghost" id="playerNext" type="button">Next ›</button>
+          <span class="player-count" id="playerCount" aria-live="polite"></span>
+        </div>
+        <div class="player-progress" aria-hidden="true"><span id="playerFill"></span></div>
+      </div>
+      <div class="sign-grid" id="signSeq">
+        <div class="sign-empty">
+          <p>Nothing to preview yet</p>
+          <span>Converted characters appear here as reference cards.</span>
+        </div>
+      </div>
+      <p class="note">Need different artwork? Manage it in <a href="#characters">Characters</a> — straight from the browser.</p>
+    </section>
+  </div>
+
+  <!-- ══════════ CHARACTERS ══════════ -->
+  <section class="panel chars" id="characters">
+    <div class="panel-head">
+      <p class="eyebrow">03 · Vocabulary</p>
+      <h2>Characters</h2>
+      <p class="desc">The artwork library behind Text → Sign. Upload an illustration for any letter or digit and it goes live instantly. Removing a picture never touches the trained model.</p>
+    </div>
+    <p class="char-legend" aria-hidden="true"><span class="sw solid"></span> Trained <span class="sw hollow"></span> Artwork only</p>
+    <div class="char-grid" id="charGrid" role="region" aria-label="Character reference cards" tabindex="0" aria-live="polite"></div>
+    <form class="char-add" id="charForm">
+      <p class="char-add-title">Add character</p>
+      <label class="char-label" for="charInput">Character (A–Z, 0–9)</label>
+      <div class="char-add-row">
+        <input id="charInput" type="text" maxlength="1" placeholder="A" aria-label="Character" />
+        <label class="btn btn-secondary file-btn"><span id="charFileName">Choose image…</span>
+          <input type="file" id="charFile" accept="image/*" hidden />
+        </label>
+        <button class="btn btn-primary" id="charSave" type="submit">Save</button>
+      </div>
+      <p class="char-msg" id="charMsg" aria-live="polite"></p>
+    </form>
+
+    <div class="custom-head">
+      <p class="char-add-title">Custom signs</p>
+      <p class="note">Words and phrases beyond A–Z — e.g. HELLO, THANK YOU. A matching word in Text → Sign shows this card instead of spelling.</p>
+    </div>
+    <div class="char-grid" id="customGrid" aria-live="polite"></div>
+
+    <form class="char-add" id="customForm">
+      <p class="char-add-title">Add custom sign</p>
+      <label class="char-label" for="customInput">Sign name (letters, digits, spaces)</label>
+      <div class="char-add-row">
+        <input id="customInput" type="text" maxlength="30" placeholder="THANK YOU" autocomplete="off" />
+        <label class="btn btn-secondary file-btn"><span id="customFileName">Choose image…</span>
+          <input type="file" id="customFile" accept="image/*" hidden />
+        </label>
+        <button class="btn btn-primary" id="customSave" type="submit">Save sign</button>
+      </div>
+      <p class="char-msg" id="customMsg" aria-live="polite"></p>
+    </form>
+  </section>
+
+  <!-- ══════════ PIPELINE ══════════ -->
+  <section class="how" id="how">
+    <p class="eyebrow center">How it works</p>
+    <h2 class="how-title">From camera to sentence in three moves</h2>
+    <div class="how-grid">
+      <article class="how-card">
+        <p class="how-num">Step 1</p>
+        <h3>Collect</h3>
+        <p>Record webcam frames or drop in labelled image folders. Each frame becomes 63 wrist-normalised landmarks in <code>landmarks.csv</code>.</p>
+      </article>
+      <article class="how-card">
+        <p class="how-num">Step 2</p>
+        <h3>Train</h3>
+        <p>Stage one pre-trains the CNN&ndash;LSTM backbone; stage two fits a RandomForest on its frozen embeddings. Re-fit just the forest with <code>--rf-only</code>.</p>
+      </article>
+      <article class="how-card">
+        <p class="how-num">Step 3</p>
+        <h3>Predict</h3>
+        <p>Capture a sign for instant transcription with confidence smoothing — or type text to preview its signs and speak the result aloud.</p>
+      </article>
+    </div>
+  </section>
+</main>
+
+<footer class="footer-band">
+  <div class="footer-inner">
+    <span><strong>VaniSetu</strong> · Flask API · TensorFlow + RandomForest</span>
+    <span>Video never leaves your session.</span>
+  </div>
+</footer>
+
+<script src="/static/js/main.js?v=14"></script>
+</body>
+</html>

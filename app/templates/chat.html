@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>VaniSetu — AI Chat (Ollama)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,700;12..96,800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="/static/css/style.css?v=40" />
+</head>
+<body>
+
+<header class="site-header">
+  <div class="header-inner">
+    <a class="brand" href="/">
+      <span class="brand-mark" aria-hidden="true">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+          <path d="M7 11V5.5a1.5 1.5 0 0 1 3 0V10m0-4.5v-1a1.5 1.5 0 0 1 3 0V10m0-4.5a1.5 1.5 0 0 1 3 0V11m0-2.5a1.5 1.5 0 0 1 3 0V13c0 3.5-2.5 7-6.5 7S6 18.5 5 16.5l-1.6-2.9c-.5-.9.1-2 1.1-2.2.6-.1 1.2.1 1.5.6L7 14" stroke="#F94C00" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </span>
+      <span class="brand-text">VaniSetu <em>AI Sign Language Translator</em></span>
+    </a>
+    <nav class="header-nav">
+      <a class="nav-item" href="/">Console</a>
+      <a class="nav-item" href="/#characters">Characters</a>
+      <a class="nav-item" href="/#how">Pipeline</a>
+      <a class="nav-item" href="/metrics">Metrics</a>
+      <a class="nav-item active" href="/chat">AI Chat</a>
+      <a class="nav-item" href="/guide">Guide</a>
+    </nav>
+    <div class="status-pill" id="healthPill">
+      <span class="dot"></span>
+      <span id="healthText">Connecting…</span>
+    </div>
+  </div>
+</header>
+
+<main class="page">
+  <section class="panel">
+    <div class="panel-head">
+      <p class="eyebrow">Sign · Ask · Answered</p>
+      <h2>Chat with {{ llm_model }}</h2>
+      <p class="desc">Sign in front of the camera — each captured letter joins your question. Press <strong>Ask AI</strong> and the local model replies. No typing needed. <strong>Go live</strong> for real-time prediction. Letters count from <strong>25%</strong> confidence.</p>
+    </div>
+    <div class="chat-grid">
+      <div class="chat-sign">
+        <div class="preview" id="previewBox">
+          <video id="cam" autoplay playsinline muted></video>
+          <div class="preview-empty" id="previewEmpty">
+            <svg width="30" height="30" viewBox="0 0 24 24" fill="none">
+              <path d="M4 8h3l2-3h6l2 3h3v11H4V8Z" stroke="#F94C00" stroke-width="1.6" stroke-linejoin="round"/>
+              <circle cx="12" cy="13" r="3.4" stroke="#F94C00" stroke-width="1.6"/>
+            </svg>
+            <p>Camera is off<span>Press “Start camera” to preview</span></p>
+          </div>
+          <canvas id="snap" hidden></canvas>
+          <p class="live-ind" id="liveInd" hidden><span class="live-pip" aria-hidden="true"></span>Live</p>
+        </div>
+        <div class="btn-row">
+          <button class="btn btn-secondary" id="btnStart" type="button">Start camera</button>
+          <button class="btn btn-primary" id="btnLive" type="button" aria-pressed="false">Go live</button>
+          <button class="btn btn-secondary" id="btnSign" type="button">Capture sign</button>
+          <button class="btn btn-ghost" id="btnMirror" type="button" aria-pressed="false" title="Enable only if your preview looks mirrored/reversed compared to the training window. Flips preview and capture together.">Fix mirrored camera: Off</button>
+          <button class="btn btn-secondary" id="btnSpace" type="button">Space</button>
+          <button class="btn btn-ghost" id="btnClear" type="button">Clear</button>
+        </div>
+        <p class="eyebrow">Your signed question</p>
+        <div class="sentence" id="compose" aria-live="polite"></div>
+        <p class="result-sub" id="signHint">Last capture: —</p>
+        <div class="btn-row">
+          <button class="btn btn-primary" id="btnAsk" type="button">Ask AI →</button>
+        </div>
+      </div>
+      <div class="chat-thread-wrap">
+        <p class="eyebrow">Conversation</p>
+        <div class="thread" id="thread" aria-live="polite">
+          <div class="bubble system">Sign your question on the left, then press <strong>Ask AI</strong>.</div>
+        </div>
+        <form class="convert-row chat-fallback" id="textForm">
+          <input id="textIn" type="text" placeholder="Or type here instead…" maxlength="2000" autocomplete="off" />
+          <button class="btn btn-secondary" type="submit">Send</button>
+        </form>
+      </div>
+    </div>
+  </section>
+
+  <footer class="page-foot">
+    <span><a href="/">← Back to console</a></span>
+    <span>Local model via Ollama · nothing leaves your machine</span>
+  </footer>
+</main>
+
+<script src="/static/js/chat.js?v=5"></script>
+</body>
+</html>

@@ -1,0 +1,8 @@
+{
+  "smtp_host": "smtp.gmail.com",
+  "smtp_port": 587,
+  "use_tls": true,
+  "sender_email": "heythereabcdefgh@gmail.com",
+  "sender_password": "mibuwkrcclpwprmt",
+  "default_recipient": "tarhekargayatri100@gmail.com,chaudhariaditi21@gmail.com, ayushghatol99@gmail.com"
+}

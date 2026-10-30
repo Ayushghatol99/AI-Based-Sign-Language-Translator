@@ -1,0 +1,102 @@
+{
+  "generated_at": "2026-10-16T07:12:40.637412+00:00",
+  "model": "CNN+LSTM backbone + RandomForest head",
+  "pipeline": [
+    "cnn_lstm_backbone",
+    "randomforest"
+  ],
+  "backbone_accuracy": 1.0,
+  "rf_accuracy": 1.0,
+  "test_samples": 52,
+  "classes": [
+    "ARTIFICIAL INTELLIGENCE",
+    "FOOD",
+    "HELP",
+    "IS",
+    "OK",
+    "PYTHON",
+    "SEND",
+    "SPACE",
+    "WANT",
+    "WHAT"
+  ],
+  "per_class": {
+    "ARTIFICIAL INTELLIGENCE": {
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1-score": 1.0,
+      "support": 7
+    },
+    "FOOD": {
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1-score": 1.0,
+      "support": 5
+    },
+    "HELP": {
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1-score": 1.0,
+      "support": 5
+    },
+    "IS": {
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1-score": 1.0,
+      "support": 7
+    },
+    "OK": {
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1-score": 1.0,
+      "support": 5
+    },
+    "PYTHON": {
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1-score": 1.0,
+      "support": 5
+    },
+    "SEND": {
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1-score": 1.0,
+      "support": 4
+    },
+    "SPACE": {
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1-score": 1.0,
+      "support": 4
+    },
+    "WANT": {
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1-score": 1.0,
+      "support": 5
+    },
+    "WHAT": {
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1-score": 1.0,
+      "support": 5
+    }
+  },
+  "macro_avg": {
+    "precision": 1.0,
+    "recall": 1.0,
+    "f1-score": 1.0
+  },
+  "weighted_avg": {
+    "precision": 1.0,
+    "recall": 1.0,
+    "f1-score": 1.0
+  },
+  "artifacts": {
+    "backbone": "hybrid_cnn_lstm_backbone.keras",
+    "randomforest": "randomforest.pkl",
+    "curves": "training_curves.png",
+    "confusion": "confusion_matrix.png",
+    "history": "history.json"
+  }
+}

@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>VaniSetu — Collect, Train & Run Guide</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,700;12..96,800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="/static/css/style.css?v=40" />
+</head>
+<body>
+
+<header class="site-header">
+  <div class="header-inner">
+    <a class="brand" href="/">
+      <span class="brand-mark" aria-hidden="true">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+          <path d="M7 11V5.5a1.5 1.5 0 0 1 3 0V10m0-4.5v-1a1.5 1.5 0 0 1 3 0V10m0-4.5a1.5 1.5 0 0 1 3 0V11m0-2.5a1.5 1.5 0 0 1 3 0V13c0 3.5-2.5 7-6.5 7S6 18.5 5 16.5l-1.6-2.9c-.5-.9.1-2 1.1-2.2.6-.1 1.2.1 1.5.6L7 14" stroke="#F94C00" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </span>
+      <span class="brand-text">VaniSetu <em>AI Sign Language Translator</em></span>
+    </a>
+    <nav class="header-nav">
+      <a class="nav-item" href="/">Console</a>
+      <a class="nav-item" href="/#characters">Characters</a>
+      <a class="nav-item" href="/#how">Pipeline</a>
+      <a class="nav-item" href="/metrics">Metrics</a>
+      <a class="nav-item" href="/chat">AI Chat</a>
+      <a class="nav-item active" href="/guide">Guide</a>
+    </nav>
+    <div class="status-pill" id="healthPill">
+      <span class="dot"></span>
+      <span id="healthText">Connecting…</span>
+    </div>
+  </div>
+</header>
+
+<main class="page">
+  <section class="panel">
+    <div class="panel-head">
+      <p class="eyebrow">Docs</p>
+      <h2>Collect · Train · Run</h2>
+      <p class="desc">The complete workflow for VaniSetu — from gathering signs to a live translator. Run all commands from <code>D:\mc0177</code> with your venv active.</p>
+    </div>
+
+    <h3 class="metric-sub">1 · Collect signs</h3>
+    <p><strong>Option A — webcam, one custom sign, no menus</strong> (recommended). Show the sign clearly, vary angles and lighting.</p>
+    <pre class="code"><code>python -m src.data.collect_landmarks --mode webcam --label HELLO --frames-per-class 150</code></pre>
+    <p><strong>Option B — webcam, interactive.</strong> Press <code>A</code>–<code>Z</code>/<code>0</code>–<code>9</code> for quick signs, <code>N</code> to type any custom name (<code>THANK YOU</code>), <code>Q</code> to quit.</p>
+    <pre class="code"><code>python -m src.data.collect_landmarks --mode webcam</code></pre>
+    <p><strong>Option C — existing photos.</strong> One folder per sign; any folder name becomes a label.</p>
+    <pre class="code"><code>data\raw_images\HELLO\photo1.jpg, photo2.jpg, ...
+python -m src.data.collect_landmarks --mode image</code></pre>
+    <p class="note">Verify what landed (aim for 120+ kept frames per sign):</p>
+    <pre class="code"><code>python -c "import pandas as pd; df=pd.read_csv('data/landmarks.csv'); print(len(df),'frames'); print(df['label'].value_counts())"</code></pre>
+
+    <h3 class="metric-sub">2 · Train the model</h3>
+    <p>Full run — required whenever labels change. Trains the CNN+LSTM backbone, then the RandomForest head, and writes the report consumed by the <a href="/metrics">Metrics</a> page.</p>
+    <pre class="code"><code>python -m src.training.train --epochs 60 --batch-size 32</code></pre>
+    <p>Fast path — only re-fits the forest when the label set is <em>unchanged</em> (e.g. tuning tree count):</p>
+    <pre class="code"><code>python -m src.training.train --rf-only</code></pre>
+    <p class="note">Tune filters, LSTM units, dropout and trees in <code>configs/config.yaml</code>. If a sign scores poorly in the per-class table, collect more frames for it and retrain.</p>
+
+    <h3 class="metric-sub">3 · Run the app</h3>
+    <pre class="code"><code>python app/app.py</code></pre>
+    <div class="table-wrap">
+      <table class="metric-table">
+        <thead>
+          <tr><th scope="col">Page</th><th scope="col">URL</th><th scope="col">What it does</th></tr>
+        </thead>
+        <tbody>
+          <tr><th scope="row">Console</th><td>http://localhost:5000/</td><td>Live sign → text, text → sign player, characters</td></tr>
+          <tr><th scope="row">AI Chat</th><td>http://localhost:5000/chat</td><td>Sign questions to local Ollama (needs <code>ollama serve</code>)</td></tr>
+          <tr><th scope="row">Metrics</th><td>http://localhost:5000/metrics</td><td>Accuracy, per-class scores, training graphs</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="note">First start takes ~30s (TensorFlow import). The status pill flips to “Model ready” when the API answers.</p>
+  </section>
+
+  <footer class="page-foot">
+    <span><a href="/">← Back to console</a></span>
+    <span>VaniSetu v1.0 · Flask API · TensorFlow + RandomForest</span>
+  </footer>
+</main>
+
+<script>
+(function () {
+  function set(txt, ok) {
+    var pill = document.getElementById("healthPill");
+    document.getElementById("healthText").textContent = txt;
+    pill.classList.add(ok ? "ready" : "attention");
+  }
+  fetch("/api/health", { cache: "no-store" }).then(function (r) { return r.json(); }).then(function (h) {
+    set(h.model_exists ? "Model ready · " + h.classes.length + " signs" : "Model not trained", h.model_exists);
+  }).catch(function () { set("API unreachable", false); });
+})();
+</script>
+</body>
+</html>

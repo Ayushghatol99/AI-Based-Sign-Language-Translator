@@ -1,0 +1,28 @@
+# Byte-compiled / caches
+__pycache__/
+*.py[cod]
+*.pyo
+
+# Data & models (large, local only)
+data/raw/
+data/processed/
+models/*.h5
+models/*.keras
+models/*.pkl
+*.csv
+!data/.gitkeep
+!models/.gitkeep
+
+# Venv
+venv/
+.venv/
+env/
+
+# OS / IDE
+.DS_Store
+.vscode/
+.idea/
+
+# Logs
+logs/
+*.log

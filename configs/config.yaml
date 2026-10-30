@@ -1,0 +1,64 @@
+# ── Data ─────────────────────────────────────────────
+project_name: sign-language-enterprise
+data:
+  raw_csv: data/landmarks.csv          # frame-level: label, x0,y0,z0 ... x20,y20,z20
+  processed_dir: data/processed
+  image_dir: data/raw_images           # optional: organised as raw_images/<LABEL>/*.jpg
+  sequence_length: 30                  # frames per sequence (LSTM temporal window)
+  stride: 5                            # sliding-window stride for sequence building
+  test_size: 0.2
+  random_state: 42
+  min_detection_confidence: 0.5
+  min_tracking_confidence: 0.5
+
+# ── Model: Hybrid CNN → LSTM → RandomForest ────────────
+# CNN+LSTM backbone learns temporal embeddings; RandomForest classifies them.
+model:
+  conv1_filters: 64
+  conv2_filters: 64
+  lstm1_units: 128
+  lstm2_units: 64
+  embedding_dim: 128
+  dropout: 0.3
+  learning_rate: 0.001
+
+# ── Training ─────────────────────────────────────────
+training:
+  batch_size: 32
+  epochs: 60
+  early_stopping_patience: 10
+  reduce_lr_patience: 5
+  model_dir: models
+  model_name: hybrid_cnn_lstm_backbone.keras   # Stage-1 backbone (softmax pre-training)
+  rf_name: randomforest.pkl                    # Stage-2 RF head on frozen embeddings
+  encoder_name: label_encoder.pkl
+  scaler_name: scaler.pkl
+  rf_n_estimators: 300
+  rf_max_depth: null                            # null = unlimited
+  rf_n_jobs: -1
+  open_set_name: open_set.json                  # per-class embedding centroids + distance limits
+  open_set_margin: 1.25                         # × 95th-pct train distance per class
+
+# ── Inference / Flask ────────────────────────────────
+inference:
+  sequence_length: 30
+  confidence_threshold: 0.55
+  smoothing_window: 5                  # majority vote over last N preds
+  unknown_threshold: 0.60              # min top-1 prob to accept a sign
+  margin_threshold: 0.15               # min top1-top2 prob gap to accept a sign
+
+server:
+  host: 0.0.0.0
+  port: 5000
+  debug: false
+
+# ── LLM (Ollama, local) ──────────────────────────────
+llm:
+  url: http://localhost:11434
+  model: qwen2.5-coder:1.5b
+  timeout: 120
+  system_prompt: >-
+    You are a friendly assistant inside a sign-language app. The user
+    communicates by signing; their message comes from gesture recognition
+    and may lack spaces or have small errors. Interpret it generously and
+    reply concisely (under 80 words).
